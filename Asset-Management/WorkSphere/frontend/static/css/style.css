@@ -1,0 +1,184 @@
+:root {
+    --ws-bg: #0b1324;
+    --ws-surface: #111c34;
+    --ws-surface-alt: #16233f;
+    --ws-border: rgba(255, 255, 255, 0.08);
+    --ws-primary: #2b6ff2;
+    --ws-primary-soft: rgba(43, 111, 242, 0.16);
+    --ws-text: #eaf1ff;
+    --ws-muted: #9fb1d1;
+    --ws-success: #28c76f;
+    --ws-warning: #f5a524;
+    --ws-danger: #ea5455;
+}
+
+body.ws-body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(43, 111, 242, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(67, 197, 255, 0.12), transparent 25%),
+        var(--ws-bg);
+    color: var(--ws-text);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ws-auth-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+}
+
+.ws-auth-card,
+.ws-card,
+.ws-table-card {
+    background: rgba(17, 28, 52, 0.96);
+    border: 1px solid var(--ws-border);
+    border-radius: 1rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.ws-auth-card {
+    width: min(100%, 420px);
+    padding: 2rem;
+}
+
+.ws-brand {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.ws-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.ws-sidebar {
+    width: 260px;
+    background: rgba(7, 13, 26, 0.94);
+    border-right: 1px solid var(--ws-border);
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.ws-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--ws-muted);
+    text-decoration: none;
+    padding: 0.8rem 0.9rem;
+    border-radius: 0.8rem;
+    margin-bottom: 0.35rem;
+}
+
+.ws-nav-link.active,
+.ws-nav-link:hover {
+    background: var(--ws-primary-soft);
+    color: var(--ws-text);
+}
+
+.ws-main {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.ws-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.ws-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.ws-subtitle,
+.text-muted-custom {
+    color: var(--ws-muted);
+}
+
+.ws-card {
+    padding: 1.25rem;
+}
+
+.ws-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.ws-stat-label {
+    color: var(--ws-muted);
+    font-size: 0.92rem;
+}
+
+.ws-table-card {
+    padding: 1rem;
+}
+
+.table.ws-table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--ws-text);
+    --bs-table-border-color: var(--ws-border);
+    margin-bottom: 0;
+}
+
+.table.ws-table thead th {
+    color: var(--ws-muted);
+    font-weight: 600;
+    border-bottom-width: 1px;
+}
+
+.form-control,
+.form-select,
+.form-control:focus,
+.form-select:focus {
+    background: var(--ws-surface-alt);
+    border-color: var(--ws-border);
+    color: var(--ws-text);
+    box-shadow: none;
+}
+
+.form-control::placeholder {
+    color: #7e92b8;
+}
+
+.badge.ws-badge {
+    border-radius: 999px;
+    padding: 0.45rem 0.7rem;
+    font-weight: 600;
+}
+
+.ws-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.ws-hidden {
+    display: none !important;
+}
+
+.ws-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--ws-muted);
+}
+
+@media (max-width: 992px) {
+    .ws-layout {
+        flex-direction: column;
+    }
+
+    .ws-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+}
