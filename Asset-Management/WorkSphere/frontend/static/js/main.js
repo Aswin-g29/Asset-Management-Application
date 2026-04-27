@@ -49,6 +49,15 @@ function statusBadge(status) {
     return `<span class="${map[status] || "ws-badge ws-badge-neutral"}">${status}</span>`;
 }
 
+function viewQRModal(imageUrl, assetId) {
+    const qrImage = document.getElementById("qrCodeImage");
+    if (qrImage) {
+        qrImage.src = imageUrl;
+    }
+    const modal = new bootstrap.Modal(document.getElementById("qrModal"));
+    modal.show();
+}
+
 function renderTable(elementId, columns, rows) {
     const container = document.getElementById(elementId);
     if (!container) return;
@@ -192,12 +201,37 @@ function renderAssetCards(elementId, items) {
                 <div><span>Brand</span><strong>${asset.brand || "-"}</strong></div>
                 <div><span>Location</span><strong>${asset.location || "-"}</strong></div>
             </div>
+            ${asset.qr_code_image_url ? `
+                <div class="mt-3 text-center">
+                    <img src="${asset.qr_code_image_url}" alt="QR Code" style="width: 60px; height: 60px; cursor: pointer;" 
+                         onclick="viewQRModal('${asset.qr_code_image_url}', '${asset.custom_asset_id || asset.asset_id}')">
+                </div>
+            ` : ''}
         </article>
     `).join("")}</div>`;
+
+    // Add click handlers after rendering
+    container.querySelectorAll("img[onclick]").forEach(img => {
+        img.addEventListener("click", function(e) {
+            const url = this.src;
+            const id = this.getAttribute("onclick").match(/'([^']*)'/)[1];
+            viewQRModal(url, id);
+        });
+    });
+}
 }
 
 async function initAssetsPage() {
     shellTemplate("Assets", "assets", `
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h4">Assets</h2>
+                <p class="text-muted mb-0">Manage your organization's assets</p>
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAssetModal">
+                <i class="bi bi-plus-circle"></i> Add Asset
+            </button>
+        </div>
         <div class="ws-card mb-4">
             <div class="row g-3">
                 <div class="col-md-4"><input class="form-control" id="asset-search" placeholder="Search assets"></div>
@@ -218,11 +252,135 @@ async function initAssetsPage() {
                         <option>Printer</option><option>Phone</option><option>Monitor</option><option>UPS</option><option>Other</option>
                     </select>
                 </div>
-                <div class="col-md-2"><button class="btn btn-primary w-100" id="filter-btn">Apply</button></div>
+                <div class="col-md-2"><button class="btn btn-secondary w-100" id="filter-btn">Apply</button></div>
             </div>
         </div>
         <div id="assets-grid"></div>
         <div class="ws-pagination mt-3" id="assets-pagination"></div>
+
+        <!-- Add Asset Modal -->
+        <div class="modal fade" id="addAssetModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Asset</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addAssetForm" class="ws-form">
+                            <div class="row g-3 mb-4">
+                                <h6 class="col-12 text-muted">Asset Information</h6>
+                                <div class="col-md-6">
+                                    <label class="form-label">Asset Name *</label>
+                                    <input type="text" class="form-control" name="asset_name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Asset Type *</label>
+                                    <select class="form-select" name="asset_type" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Serial Number *</label>
+                                    <input type="text" class="form-control" name="serial_number" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Category *</label>
+                                    <select class="form-select" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="IT">IT</option>
+                                        <option value="Non-IT">Non-IT</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Model</label>
+                                    <input type="text" class="form-control" name="model">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Brand</label>
+                                    <input type="text" class="form-control" name="brand">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Specifications</label>
+                                    <textarea class="form-control" name="specifications" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <h6 class="col-12 text-muted">Purchase Information</h6>
+                                <div class="col-md-6">
+                                    <label class="form-label">Purchase Date</label>
+                                    <input type="date" class="form-control" name="purchase_date">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Purchase Cost</label>
+                                    <input type="number" class="form-control" name="purchase_cost" step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Vendor Name</label>
+                                    <input type="text" class="form-control" name="vendor_name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Invoice Number</label>
+                                    <input type="text" class="form-control" name="invoice_number">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <h6 class="col-12 text-muted">Warranty Information</h6>
+                                <div class="col-md-6">
+                                    <label class="form-label">Warranty Start Date</label>
+                                    <input type="date" class="form-control" name="warranty_start_date">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Warranty Expiry (Years)</label>
+                                    <input type="number" class="form-control" name="warranty_expiry" min="0">
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <h6 class="col-12 text-muted">Status & Organization</h6>
+                                <div class="col-md-6">
+                                    <label class="form-label">Asset Status *</label>
+                                    <select class="form-select" name="asset_status" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Condition *</label>
+                                    <select class="form-select" name="condition_status" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Location *</label>
+                                    <select class="form-select" name="location" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Department *</label>
+                                    <select class="form-select" name="department" required></select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submitAssetBtn">
+                            <i class="bi bi-plus-circle"></i> Create Asset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Code Modal -->
+        <div class="modal fade" id="qrModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Asset QR Code</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+                    </div>
+                </div>
+            </div>
+        </div>
     `);
 
     const state = { page: 1, pageSize: 8, total: 0 };
@@ -286,6 +444,103 @@ async function initAssetsPage() {
             }
         }
     });
+
+    // Load dropdown data
+    try {
+        const dropdownData = await API.get("/assets/meta/dropdowns");
+        
+        // Populate asset types
+        const assetTypeSelect = document.querySelector('select[name="asset_type"]');
+        if (assetTypeSelect) {
+            assetTypeSelect.innerHTML = '<option value="">Select Asset Type</option>' + 
+                dropdownData.asset_types.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+        
+        // Populate asset status
+        const assetStatusSelect = document.querySelector('select[name="asset_status"]');
+        if (assetStatusSelect) {
+            assetStatusSelect.innerHTML = '<option value="">Select Status</option>' + 
+                dropdownData.asset_statuses.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+        
+        // Populate condition status
+        const conditionSelect = document.querySelector('select[name="condition_status"]');
+        if (conditionSelect) {
+            conditionSelect.innerHTML = '<option value="">Select Condition</option>' + 
+                dropdownData.conditions.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        
+        // Populate locations
+        const locationSelect = document.querySelector('select[name="location"]');
+        if (locationSelect) {
+            locationSelect.innerHTML = '<option value="">Select Location</option>' + 
+                Object.keys(dropdownData.locations).map(l => `<option value="${l}">${l}</option>`).join('');
+        }
+        
+        // Populate departments
+        const departmentSelect = document.querySelector('select[name="department"]');
+        if (departmentSelect) {
+            departmentSelect.innerHTML = '<option value="">Select Department</option>' + 
+                Object.keys(dropdownData.departments).map(d => `<option value="${d}">${d}</option>`).join('');
+        }
+    } catch (error) {
+        showToast("Failed to load form options", "error");
+    }
+
+    // Handle Add Asset form submission
+    const submitAssetBtn = document.getElementById("submitAssetBtn");
+    if (submitAssetBtn) {
+        submitAssetBtn.addEventListener("click", async () => {
+            const form = document.getElementById("addAssetForm");
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            setFormBusy(form, true, "Creating...");
+            
+            try {
+                const formData = new FormData(form);
+                const data = {
+                    asset_name: formData.get("asset_name"),
+                    asset_type: formData.get("asset_type"),
+                    serial_number: formData.get("serial_number"),
+                    category: formData.get("category"),
+                    model: formData.get("model") || null,
+                    brand: formData.get("brand") || null,
+                    specifications: formData.get("specifications") || null,
+                    purchase_date: formData.get("purchase_date") || null,
+                    purchase_cost: formData.get("purchase_cost") ? parseFloat(formData.get("purchase_cost")) : null,
+                    vendor_name: formData.get("vendor_name") || null,
+                    invoice_number: formData.get("invoice_number") || null,
+                    warranty_start_date: formData.get("warranty_start_date") || null,
+                    warranty_expiry: formData.get("warranty_expiry") ? parseInt(formData.get("warranty_expiry")) : null,
+                    asset_status: formData.get("asset_status"),
+                    condition_status: formData.get("condition_status"),
+                    location: formData.get("location"),
+                    department: formData.get("department"),
+                };
+
+                const response = await API.post("/assets", data);
+                
+                // Show success with custom asset ID
+                showToast(`Asset created successfully! (ID: ${response.custom_asset_id})`, "success");
+                
+                // Reset form and close modal
+                form.reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById("addAssetModal"));
+                if (modal) modal.hide();
+                
+                // Reload assets list
+                state.page = 1;
+                await loadAssets();
+            } catch (error) {
+                showToast(error.message || "Failed to create asset", "error");
+            } finally {
+                setFormBusy(form, false);
+            }
+        });
+    }
 
     await loadAssets();
 }
