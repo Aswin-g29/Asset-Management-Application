@@ -16,6 +16,10 @@ const Auth = {
         return raw ? JSON.parse(raw) : null;
     },
 
+    getCurrentUser() {
+        return this.getUser();
+    },
+
     isLoggedIn() {
         return Boolean(this.getToken());
     },
@@ -24,6 +28,11 @@ const Auth = {
         if (!this.isLoggedIn()) {
             window.location.href = "login.html";
         }
+    },
+
+    // Alias for backward compatibility
+    requireLogin() {
+        return this.requireAuth();
     },
 
     logout() {
