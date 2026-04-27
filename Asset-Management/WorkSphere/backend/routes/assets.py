@@ -1,5 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
+import random
+import string
 
 import qrcode
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -12,6 +14,31 @@ from schemas import ApiMessage, AssetCreate, AssetUpdate, Pager
 router = APIRouter(prefix="/assets", tags=["Assets"])
 EDITOR = Depends(require_roles("Admin", "IT Manager"))
 ADMIN = Depends(require_roles("Admin"))
+
+# Location and Department mappings
+LOCATIONS = {
+    "Chennai": "CHN",
+    "Pune": "PUN"
+}
+
+DEPARTMENTS = {
+    "IA": "Intelligent Automation",
+    "Cyber Security": "Cyber Security",
+    "IT Administration": "IT Administration"
+}
+
+
+@router.get("/meta/dropdowns")
+def get_dropdowns(_: CurrentUser):
+    """Get location and department options for form dropdowns"""
+    return {
+        "locations": list(LOCATIONS.keys()),
+        "departments": ["IA", "Cyber Security", "IT Administration"],
+        "asset_types": ["Laptop", "Desktop", "Server", "Furniture", "Printer", "Phone", "Monitor", "UPS", "Other"],
+        "asset_statuses": ["Available", "Assigned", "In Repair", "Retired", "Lost"],
+        "conditions": ["New", "Good", "Damaged"],
+        "categories": ["IT", "Non-IT"]
+    }
 
 
 def _asset_or_404(asset_id: int) -> dict:
@@ -100,7 +127,6 @@ def get_asset(asset_id: int, _: CurrentUser):
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def create_asset(payload: AssetCreate, current_user: dict = EDITOR):
-    qr_value = f"WS-{payload.asset_type[:3].upper()}-{uuid4().hex[:12]}"
     query = """
         INSERT INTO asset_master (
             asset_name, asset_type, category, serial_number, qr_code_value, model, brand, specifications,
@@ -118,7 +144,7 @@ def create_asset(payload: AssetCreate, current_user: dict = EDITOR):
                 payload.asset_type,
                 payload.category,
                 payload.serial_number,
-                qr_value,
+                "",  # qr_code_value will be generated after asset_id is known
                 payload.model,
                 payload.brand,
                 payload.specifications,
@@ -137,7 +163,41 @@ def create_asset(payload: AssetCreate, current_user: dict = EDITOR):
             ),
         )
         asset_id = cursor.lastrowid
-    return {"message": "Asset created successfully", "asset_id": asset_id, "qr_code_value": qr_value}
+
+    # Generate custom asset ID format: AMI-[location]-[asset_type]-[serial_last_5]-[random_2_char]
+    location_code = LOCATIONS.get(payload.location, "UNK")[:3].upper()
+    asset_type_code = payload.asset_type[:3].upper()
+    serial_suffix = (payload.serial_number[-5:] if len(payload.serial_number) >= 5 else payload.serial_number).upper()
+    random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=2))
+    
+    custom_asset_id = f"AMI-{location_code}-{asset_type_code}-{serial_suffix}-{random_suffix}"
+    
+    # Generate QR code
+    qr_dir = Path(__file__).resolve().parent.parent / "static" / "qrcodes"
+    qr_dir.mkdir(parents=True, exist_ok=True)
+    file_name = f"asset_{asset_id}.png"
+    file_path = qr_dir / file_name
+    
+    qr_value = custom_asset_id
+    image = qrcode.make(qr_value)
+    image.save(file_path)
+    
+    image_url = f"/static/qrcodes/{file_name}"
+    
+    # Update asset with custom ID and QR code info
+    with get_db() as (_, cursor):
+        cursor.execute(
+            "UPDATE asset_master SET qr_code_value = %s, qr_code_image_url = %s, modified_on = CURRENT_TIMESTAMP WHERE asset_id = %s",
+            (qr_value, image_url, asset_id),
+        )
+    
+    return {
+        "message": "Asset created successfully",
+        "asset_id": asset_id,
+        "custom_asset_id": custom_asset_id,
+        "qr_code_value": qr_value,
+        "qr_code_image_url": image_url
+    }
 
 
 @router.put("/{asset_id}")

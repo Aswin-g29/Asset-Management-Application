@@ -8,8 +8,250 @@
     <link href="static/css/style.css" rel="stylesheet">
 </head>
 <body data-page="add_asset">
+    <div class="ws-page-wrapper" style="display: none;">
+        <div class="container-lg py-5">
+            <div class="mb-4">
+                <h1 class="h3">Add New Asset</h1>
+                <p class="text-muted">Register a new asset in the system</p>
+            </div>
+
+            <form id="addAssetForm" class="ws-form">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <!-- Asset Information Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title border-bottom pb-3">Asset Information</h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Asset Name *</label>
+                                    <input type="text" class="form-control" name="asset_name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Asset Type *</label>
+                                    <select class="form-select" name="asset_type" required id="assetTypeSelect">
+                                        <option value="">Select Asset Type</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Serial Number *</label>
+                                    <input type="text" class="form-control" name="serial_number" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Category *</label>
+                                    <select class="form-select" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="IT">IT</option>
+                                        <option value="Non-IT">Non-IT</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Model</label>
+                                    <input type="text" class="form-control" name="model">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Brand</label>
+                                    <input type="text" class="form-control" name="brand">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Specifications</label>
+                                    <textarea class="form-control" name="specifications" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Purchase Information Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title border-bottom pb-3">Purchase Information</h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Purchase Date</label>
+                                    <input type="date" class="form-control" name="purchase_date">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Purchase Cost</label>
+                                    <input type="number" class="form-control" name="purchase_cost" step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Vendor Name</label>
+                                    <input type="text" class="form-control" name="vendor_name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Invoice Number</label>
+                                    <input type="text" class="form-control" name="invoice_number">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warranty Information Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title border-bottom pb-3">Warranty Information</h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Warranty Start Date</label>
+                                    <input type="date" class="form-control" name="warranty_start_date">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Warranty Expiry (Years)</label>
+                                    <input type="number" class="form-control" name="warranty_expiry" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status & Organization Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title border-bottom pb-3">Status & Organization</h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Asset Status *</label>
+                                    <select class="form-select" name="asset_status" required>
+                                        <option value="">Select Status</option>
+                                        <option value="Available" selected>Available</option>
+                                        <option value="Assigned">Assigned</option>
+                                        <option value="In Repair">In Repair</option>
+                                        <option value="Retired">Retired</option>
+                                        <option value="Lost">Lost</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Condition Status *</label>
+                                    <select class="form-select" name="condition_status" required>
+                                        <option value="">Select Condition</option>
+                                        <option value="New" selected>New</option>
+                                        <option value="Good">Good</option>
+                                        <option value="Damaged">Damaged</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Location *</label>
+                                    <select class="form-select" name="location" required id="locationSelect">
+                                        <option value="">Select Location</option>
+                                        <option value="Chennai" selected>Chennai</option>
+                                        <option value="Pune">Pune</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Department *</label>
+                                    <select class="form-select" name="department" required>
+                                        <option value="">Select Department</option>
+                                        <option value="IA">Intelligent Automation (IA)</option>
+                                        <option value="Cyber Security">Cyber Security</option>
+                                        <option value="IT Administration">IT Administration</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Auto-filled Information Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title border-bottom pb-3">Audit Information (Auto-filled)</h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Created By</label>
+                                    <input type="text" class="form-control" id="createdBy" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Created On</label>
+                                    <input type="text" class="form-control" id="createdOn" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Modified By</label>
+                                    <input type="text" class="form-control" id="modifiedBy" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Modified On</label>
+                                    <input type="text" class="form-control" id="modifiedOn" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- QR Code Preview -->
+                        <div class="mb-4">
+                            <h5 class="card-title border-bottom pb-3">QR Code Preview</h5>
+                            <div class="alert alert-info">
+                                <strong>Note:</strong> The QR code will be automatically generated when the asset is created. The format will be: <code>AMI-[Location]-[AssetType]-[SerialLast5]-[RandomCode]</code>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Create Asset
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="cancelBtn">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="static/js/auth.js"></script>
     <script src="static/js/api.js"></script>
     <script src="static/js/main.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async function() {
+            const currentUser = Auth.getCurrentUser();
+            if (!currentUser) return;
+
+            // Auto-fill user information
+            document.getElementById("createdBy").value = currentUser.user_name || currentUser.username;
+            document.getElementById("modifiedBy").value = currentUser.user_name || currentUser.username;
+            document.getElementById("createdOn").value = new Date().toLocaleString();
+            document.getElementById("modifiedOn").value = new Date().toLocaleString();
+
+            // Load dropdown options
+            try {
+                const dropdowns = await API.get("/assets/meta/dropdowns");
+                
+                const assetTypeSelect = document.getElementById("assetTypeSelect");
+                dropdowns.asset_types.forEach(type => {
+                    const option = document.createElement("option");
+                    option.value = type;
+                    option.textContent = type;
+                    assetTypeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading dropdowns:", error);
+            }
+
+            // Show page
+            document.querySelector(".ws-page-wrapper").style.display = "block";
+        });
+
+        // Form submission
+        document.getElementById("addAssetForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const payload = Object.fromEntries(formData);
+            
+            // Convert to proper types
+            if (payload.purchase_cost) payload.purchase_cost = parseFloat(payload.purchase_cost);
+            if (payload.warranty_expiry) payload.warranty_expiry = parseInt(payload.warranty_expiry);
+            
+            try {
+                setFormBusy(this, true, "Creating asset...");
+                const response = await API.post("/assets", payload);
+                showToast(`Asset created successfully! (ID: ${response.custom_asset_id})`, "success");
+                setTimeout(() => window.location.href = "assets.html", 1500);
+            } catch (error) {
+                showToast(error.message || "Error creating asset", "error");
+            } finally {
+                setFormBusy(this, false);
+            }
+        });
+
+        // Cancel button
+        document.getElementById("cancelBtn").addEventListener("click", function() {
+            window.location.href = "assets.html";
+        });
+    </script>
 </body>
 </html>

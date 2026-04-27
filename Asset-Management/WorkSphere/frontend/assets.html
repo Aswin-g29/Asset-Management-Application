@@ -8,8 +8,192 @@
     <link href="static/css/style.css" rel="stylesheet">
 </head>
 <body data-page="assets">
+    <div class="ws-page-wrapper" style="display: none;">
+        <div class="container-lg py-5">
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3">Assets</h1>
+                    <p class="text-muted">Manage your organization's assets</p>
+                </div>
+                <a href="add_asset.html" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Asset
+                </a>
+            </div>
+
+            <!-- Filters -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search assets...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="Available">Available</option>
+                                <option value="Assigned">Assigned</option>
+                                <option value="In Repair">In Repair</option>
+                                <option value="Retired">Retired</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="typeFilter">
+                                <option value="">All Types</option>
+                                <option value="Laptop">Laptop</option>
+                                <option value="Desktop">Desktop</option>
+                                <option value="Server">Server</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Printer">Printer</option>
+                                <option value="Phone">Phone</option>
+                                <option value="Monitor">Monitor</option>
+                                <option value="UPS">UPS</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="departmentFilter">
+                                <option value="">All Departments</option>
+                                <option value="IA">Intelligent Automation (IA)</option>
+                                <option value="Cyber Security">Cyber Security</option>
+                                <option value="IT Administration">IT Administration</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assets Table -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div id="assetTableContainer"></div>
+                    
+                    <!-- Pagination -->
+                    <nav id="paginationNav" style="display: none;">
+                        <ul class="pagination justify-content-center mt-4">
+                            <li class="page-item" id="prevPage">
+                                <a class="page-link" href="#">Previous</a>
+                            </li>
+                            <li class="page-item" id="pageInfo">
+                                <span class="page-link">Page 1</span>
+                            </li>
+                            <li class="page-item" id="nextPage">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset Detail Modal -->
+    <div class="modal fade" id="assetModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Asset Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="assetModalBody">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="static/js/auth.js"></script>
     <script src="static/js/api.js"></script>
     <script src="static/js/main.js"></script>
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+
+        async function loadAssets() {
+            const searchValue = document.getElementById("searchInput")?.value || "";
+            const statusValue = document.getElementById("statusFilter")?.value || "";
+            const typeValue = document.getElementById("typeFilter")?.value || "";
+            const departmentValue = document.getElementById("departmentFilter")?.value || "";
+
+            try {
+                let url = `/assets?page=${currentPage}&page_size=${pageSize}`;
+                if (searchValue) url += `&search=${encodeURIComponent(searchValue)}`;
+                if (statusValue) url += `&status_filter=${encodeURIComponent(statusValue)}`;
+                if (typeValue) url += `&type_filter=${encodeURIComponent(typeValue)}`;
+                if (departmentValue) url += `&department=${encodeURIComponent(departmentValue)}`;
+
+                const response = await API.get(url);
+                renderAssets(response.items);
+                updatePagination(response.page, response.page_size, response.total);
+            } catch (error) {
+                showToast("Error loading assets", "error");
+                console.error(error);
+            }
+        }
+
+        function renderAssets(assets) {
+            const columns = [
+                { label: "Asset ID", key: "qr_code_value" },
+                { label: "Asset Name", key: "asset_name" },
+                { label: "Type", key: "asset_type" },
+                { label: "Serial Number", key: "serial_number" },
+                { label: "Location", key: "location" },
+                { label: "Department", key: "department" },
+                { label: "Status", key: "asset_status", render: (row) => statusBadge(row.asset_status) },
+                { label: "QR Code", key: "qr_code_image_url", render: (row) => renderQRCode(row) },
+                { label: "Actions", key: "asset_id", render: (row) => renderActions(row) }
+            ];
+            renderTable("assetTableContainer", columns, assets);
+        }
+
+        function renderQRCode(row) {
+            if (!row.qr_code_image_url) {
+                return '-';
+            }
+            return `<img src="${row.qr_code_image_url}" alt="QR Code" class="img-thumbnail" style="width: 60px; height: 60px; cursor: pointer;" onclick="viewQRModal('${row.qr_code_image_url}', '${row.qr_code_value}')">`;
+        }
+
+        function viewQRModal(imageUrl, qrValue) {
+            const modal = new bootstrap.Modal(document.getElementById("assetModal"));
+            document.getElementById("assetModalBody").innerHTML = `
+                <div class="text-center">
+                    <img src="${imageUrl}" alt="QR Code" class="img-fluid mb-3" style="max-width: 300px;">
+                    <p><strong>Value:</strong> ${qrValue}</p>
+                </div>
+            `;
+            modal.show();
+        }
+
+        function renderActions(row) {
+            return `
+                <a href="asset_detail.html?id=${row.asset_id}" class="btn btn-sm btn-info">View</a>
+            `;
+        }
+
+        function updatePagination(page, pageSize, total) {
+            const totalPages = Math.ceil(total / pageSize);
+            document.getElementById("pageInfo").innerHTML = `<span class="page-link">Page ${page} of ${totalPages}</span>`;
+            
+            document.getElementById("prevPage").style.display = page > 1 ? "" : "none";
+            document.getElementById("nextPage").style.display = page < totalPages ? "" : "none";
+            
+            document.getElementById("paginationNav").style.display = totalPages > 1 ? "" : "none";
+
+            document.getElementById("prevPage").onclick = (e) => { e.preventDefault(); currentPage--; loadAssets(); };
+            document.getElementById("nextPage").onclick = (e) => { e.preventDefault(); currentPage++; loadAssets(); };
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            Auth.requireLogin();
+            loadAssets();
+            
+            document.getElementById("searchInput")?.addEventListener("input", () => { currentPage = 1; loadAssets(); });
+            document.getElementById("statusFilter")?.addEventListener("change", () => { currentPage = 1; loadAssets(); });
+            document.getElementById("typeFilter")?.addEventListener("change", () => { currentPage = 1; loadAssets(); });
+            document.getElementById("departmentFilter")?.addEventListener("change", () => { currentPage = 1; loadAssets(); });
+
+            document.querySelector(".ws-page-wrapper").style.display = "block";
+        });
+    </script>
 </body>
 </html>
