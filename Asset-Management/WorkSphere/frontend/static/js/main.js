@@ -219,7 +219,6 @@ function renderAssetCards(elementId, items) {
         });
     });
 }
-}
 
 async function initAssetsPage() {
     shellTemplate("Assets", "assets", `
